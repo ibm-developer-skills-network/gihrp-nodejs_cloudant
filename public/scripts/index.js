@@ -1,8 +1,8 @@
 // index.js
 
-var REST_DATA = 'api/favorites';
-var KEY_ENTER = 13;
-var defaultItems = [
+let REST_DATA = 'api/favorites';
+let KEY_ENTER = 13;
+let defaultItems = [
 
 ];
 
@@ -16,17 +16,17 @@ function loadItems() {
         //stop showing loading message
         stopLoadingMessage();
 
-        var receivedItems = data || [];
-        var items = [];
-        var i;
+        let receivedItems = data || [];
+        let items = [];
+        let i;
         // Make sure the received items have correct format
         for (i = 0; i < receivedItems.length; ++i) {
-            var item = receivedItems[i];
+            let item = receivedItems[i];
             if (item && 'id' in item) {
                 items.push(item);
             }
         }
-        var hasItems = items.length;
+        let hasItems = items.length;
         if (!hasItems) {
             items = defaultItems;
         }
@@ -34,8 +34,8 @@ function loadItems() {
             addItem(items[i], !hasItems);
         }
         if (!hasItems) {
-            var table = document.getElementById('notes');
-            var nodes = [];
+            let table = document.getElementById('notes');
+            let nodes = [];
             for (i = 0; i < table.rows.length; ++i) {
                 nodes.push(table.rows[i].firstChild.firstChild);
             }
@@ -61,56 +61,71 @@ function removeProgressIndicator(row) {
 }
 
 function addNewRow(table) {
-    var newRow = document.createElement('tr');
+    let newRow = document.createElement('tr');
     table.appendChild(newRow);
     return table.lastChild;
 }
 
 function uploadFile(node) {
 
-    var file = node.previousSibling.files[0];
+
+	console.log("Inside uplaodfile");
+    let file = node.previousSibling.files[0];
+    //let file = document.getElementById("upload_file").files[0];
 
     //if file not selected, throw error
     if (!file) {
         alert("File not selected for upload... \t\t\t\t \n\n - Choose a file to upload. \n - Then click on Upload button.");
         return;
     }
+    
+    let data = new FormData();
+    
+    let row = node.parentNode.parentNode.parentNode;
 
-    var row = node.parentNode.parentNode.parentNode;
+    let id = row.getAttribute('data-id');
 
-    var form = new FormData();
-    form.append("file", file);
-
-    var id = row.getAttribute('data-id');
-
-    var queryParams = "id=" + (id == null ? -1 : id);
+    let queryParams = "id=" + (id === null ? -1 : id);
     queryParams += "&name=" + row.firstChild.firstChild.value;
     queryParams += "&value=" + row.firstChild.nextSibling.firstChild.value;
-
-
-    var table = row.firstChild.nextSibling.firstChild;
-    var newRow = addNewRow(table);
+    
+    let table = row.firstChild.nextSibling.firstChild;
+    let newRow = addNewRow(table);
 
     startProgressIndicator(newRow);
 
-    xhrAttach(REST_DATA + "/attach?" + queryParams, form, function(item) {
-        console.log('Item id - ' + item.id);
-        console.log('attached: ', item);
-        row.setAttribute('data-id', item.id);
-        removeProgressIndicator(row);
-        setRowContent(item, row);
-    }, function(err) {
-        console.error(err);
-    });
 
+	data.append("file", file, row.firstChild.firstChild.value);
+ 
+	let xhr = new XMLHttpRequest();
+	xhr.withCredentials = true;
+	
+	xhr.addEventListener("readystatechange", function() {
+	  if(this.readyState === 4) {
+			if(xhr.status === 200){
+				let item = parseJson(xhr.responseText) 
+        		console.log('Item id - ' + item.id);
+        		console.log('attached: ', item);
+        		row.setAttribute('data-id', item.id);
+        		removeProgressIndicator(row);
+        		setRowContent(item, row);
+				console.log("Document successfully uploaded!")
+			}else{
+				console.error(xhr.status+" "+xhr.statusText);
+			}
+	  }
+	});
+	
+	xhr.open("POST", REST_DATA + "/attach?" + queryParams, true);
+	xhr.send(data);
 }
 
-var attachButton = "<br><div class='uploadBox'><input type=\"file\" name=\"file\" id=\"upload_file\"><input width=\"100\" type=\"submit\" value=\"Upload\" onClick='uploadFile(this)'></div>";
+let attachButton = "<br><div class='uploadBox'><input type=\"file\" name=\"file\" id=\"upload_file\"><input width=\"100\" type=\"submit\" value=\"Upload\" onClick='uploadFile(this)'></div>";
 
 function setRowContent(item, row) {
-    var innerHTML = "<td class='contentName'><textarea id='nameText' class = 'nameText' onkeydown='onKey(event)'>" + item.name + "</textarea></td><td class='contentDetails'>";
+    let innerHTML = "<td class='contentName'><textarea id='nameText' class = 'nameText' onkeydown='onKey(event)'>" + item.name + "</textarea></td><td class='contentDetails'>";
 
-    var valueTextArea = "<textarea id='valText' onkeydown='onKey(event)' placeholder=\"Enter a description...\"></textarea>";
+    let valueTextArea = "<textarea id='valText' onkeydown='onKey(event)' placeholder=\"Enter a description...\"></textarea>";
     if (item.value) {
         valueTextArea = "<textarea id='valText' onkeydown='onKey(event)'>" + item.value + "</textarea>";
     }
@@ -118,11 +133,11 @@ function setRowContent(item, row) {
     innerHTML += valueTextArea;
 
 
-    var attachments = item.attachements;
+    let attachments = item.attachements;
     if (attachments && attachments.length > 0) {
         innerHTML += "<div class='flexBox'>";
-        for (var i = 0; i < attachments.length; ++i) {
-            var attachment = attachments[i];
+        for (let i = 0; i < attachments.length; ++i) {
+            let attachment = attachments[i];
 
             if (attachment.content_type.indexOf("image/") == 0) {
                 innerHTML += "<div class='contentTiles'>" + attachment.key + "<br><img height=\"150\" src=\"" + encodeUriAndQuotes(attachment.url) + "\" onclick='window.open(\"" + encodeUriAndQuotes(attachment.url) + "\")'></img></div>";
@@ -148,9 +163,9 @@ function setRowContent(item, row) {
 
 function addItem(item, isNew) {
 
-    var row = document.createElement('tr');
+    let row = document.createElement('tr');
     row.className = "tableRows";
-    var id = item && item.id;
+    let id = item && item.id;
     if (id) {
         row.setAttribute('data-id', id);
     }
@@ -166,20 +181,20 @@ function addItem(item, isNew) {
             "<td class = 'contentAction'><span class='deleteBtn' onclick='deleteItem(this)' title='delete me'></span></td>";
     }
 
-    var table = document.getElementById('notes');
+    let table = document.getElementById('notes');
     table.lastChild.appendChild(row);
     row.isNew = !item || isNew;
 
     if (row.isNew) {
-        var textarea = row.firstChild.firstChild;
+        let textarea = row.firstChild.firstChild;
         textarea.focus();
     }
 
 }
 
 function deleteItem(deleteBtnNode) {
-    var row = deleteBtnNode.parentNode.parentNode;
-    var attribId = row.getAttribute('data-id');
+    let row = deleteBtnNode.parentNode.parentNode;
+    let attribId = row.getAttribute('data-id');
     if (attribId) {
         xhrDelete(REST_DATA + '?id=' + row.getAttribute('data-id'), function() {
             row.parentNode.removeChild(row);
@@ -197,8 +212,8 @@ function onKey(evt) {
 
         evt.stopPropagation();
         evt.preventDefault();
-        var nameV, valueV;
-        var row;
+        let nameV, valueV;
+        let row;
 
         if (evt.target.id == "nameText") {
             row = evt.target.parentNode.parentNode;
@@ -211,7 +226,7 @@ function onKey(evt) {
             valueV = evt.target.value;
         }
 
-        var data = {
+        let data = {
             name: nameV,
             value: valueV
         };
@@ -242,9 +257,9 @@ function onKey(evt) {
 }
 
 function saveChange(contentNode, callback) {
-    var row = contentNode.parentNode.parentNode;
+    let row = contentNode.parentNode.parentNode;
 
-    var data = {
+    let data = {
         name: row.firstChild.firstChild.value,
         value: row.firstChild.nextSibling.firstChild.value
     };
@@ -268,12 +283,12 @@ function saveChange(contentNode, callback) {
 }
 
 function toggleServiceInfo() {
-    var node = document.getElementById('vcapservices');
+    let node = document.getElementById('vcapservices');
     node.style.display = node.style.display == 'none' ? '' : 'none';
 }
 
 function toggleAppInfo() {
-    var node = document.getElementById('appinfo');
+    let node = document.getElementById('appinfo');
     node.style.display = node.style.display == 'none' ? '' : 'none';
 }
 

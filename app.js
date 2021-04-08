@@ -39,8 +39,10 @@ app.use(bodyParser.urlencoded({
 }));
 app.use(bodyParser.json());
 app.use(methodOverride());
-app.use(express.static(path.join(__dirname, 'public')));
+app.use(express.static(path.join(__dirname, '/public')));
 app.use('/style', express.static(path.join(__dirname, '/views/style')));
+app.use('/', express.static(path.join(__dirname, '/views')));
+
 
 // development only
 if ('development' == app.get('env')) {
@@ -162,10 +164,8 @@ app.get('/api/favorites/attach', function(request, response) {
 
 app.post('/api/favorites/attach', multipartMiddleware, function(request, response) {
 
-    console.log("Upload File Invoked..");
-    console.log('Request: ' + JSON.stringify(request.headers));
 
-    var id;
+    let id;
 
     db.get(request.query.id, function(err, existingdoc) {
 
@@ -220,7 +220,6 @@ app.post('/api/favorites/attach', multipartMiddleware, function(request, respons
                                         name,
                                         value,
                                         attachements);
-                                    console.log('Response after attachment: \n' + JSON.stringify(responseData));
                                     response.write(JSON.stringify(responseData));
                                     response.end();
                                     return;
@@ -252,7 +251,6 @@ app.post('/api/favorites/attach', multipartMiddleware, function(request, respons
 
                     existingdoc = doc;
                     console.log("New doc created ..");
-                    console.log(existingdoc);
                     insertAttachment(file, existingdoc.id, existingdoc.rev, name, value, response);
 
                 }
@@ -369,7 +367,6 @@ app.get('/api/favorites', function(request, response) {
                         docList.push(responseData);
                         response.write(JSON.stringify(docList));
                         console.log(JSON.stringify(docList));
-                        console.log('ending response...');
                         response.end();
                     }
                 });
@@ -411,7 +408,6 @@ app.get('/api/favorites', function(request, response) {
                             i++;
                             if (i >= len) {
                                 response.write(JSON.stringify(docList));
-                                console.log('ending response...');
                                 response.end();
                             }
                         } else {

@@ -50,15 +50,17 @@ function xhrPut(url, data, callback, errback){
 
 function xhrAttach(url, data, callback, errback)
 {
-	var xhr = new createXHR();
+	//var xhr = new createXHR();
+	let xhr = new XMLHttpRequest();
+
 	xhr.open("POST", url, true);
-	//xhr.setRequestHeader("Content-type", "multipart/form-data");
+	xhr.setRequestHeader("Content-type", "multipart/form-data");
 	xhr.onreadystatechange = function(){
-		if(xhr.readyState == 4){
-			if(xhr.status == 200){
+		if(xhr.readyState === 4){
+			if(xhr.status === 200){
 				callback(parseJson(xhr.responseText));
 			}else{
-				errback('service not available');
+				errback(xhr.status+'Ennapppa ipdi aaypochey!!!');
 			}
 		}
 	};
@@ -68,7 +70,11 @@ function xhrAttach(url, data, callback, errback)
 }
 
 function xhrPost(url, data, callback, errback){
-	var xhr = new createXHR();
+	//var xhr = new createXHR();
+	let xhr = new XMLHttpRequest();
+	console.log("################")
+	console.log(url);
+	console.log("################")
 	xhr.open("POST", url, true);
 	xhr.setRequestHeader("Content-type", "application/x-www-form-urlencoded");
 	xhr.onreadystatechange = function(){
